@@ -1,0 +1,19 @@
+[project]
+name = "live-coding-sg"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3>=1.40.40",
+    "mlflow>=3.4.0",
+    "nbformat>=5.10.4",
+    "pandas>=2.3.2",
+    "pip>=25.2",
+    "plotly>=6.3.0",
+    "sagemaker>=2.251.1",
+    "scikit-learn>=1.7.2",
+    "sentence-transformers>=5.1.1",
+    "transformers>=4.56.2",
+    "xgboost>=3.0.5",
+]
