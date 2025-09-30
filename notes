@@ -1,3 +1,19 @@
+Pré-requis
+----------
+
+- Installer Docker desktop 
+>>> https://www.docker.com/products/docker-desktop/
+
+- Installer Git bash
+>>> https://git-scm.com/downloads
+
+cloner le repo github et enterer dans le dossier :
+>>> git clone https://github.com/douanlakev/aws-model-test.git
+>>> cd live-coding-sg
+
+(ouvrir le dossier dans vscode)
+>>> code . 
+
 Etape 0 : Télcharger et configurer AWS CLI et se connecter à son compte AWS
 --------------------------------------------------------------------------------
 
@@ -13,7 +29,7 @@ installer l'exécutable en local puis ouvrir un nouveau powershell et taper la c
 (choisir un nom d'utilisateur, cocher "Accès programmatique" et "AdministrateurAccès")
 
 2. créer une clé d'accès sur IAM depuis la console
-depuis le navigateur, aller dans :
+depuis la console aws, aller dans :
 IAMS -> user -> clés d'accès (coin supérieur droit) -> create access key > Interactive CLI > download .csv file
 
 3. configurer l'accès à IAM via CLI
@@ -32,7 +48,7 @@ Etape 1 : créer un bucket s3 et le rendre public
 (Depuis la console, il faut décocher le blocage d'accès public)
  s3 >> create bucket >> nom : kevindouanlapat >> région : eu-north-1 >> décocher "bloquer tout accès public"
 
-Lister les buckets s3 depuis powershell 
+Lister les buckets s3 depuis powershell pour vérifier que le bucket a été bien crée 
 >>> aws s3 ls
 
 Etape 2 : entrainer le modèle et le mettre au format pickle
@@ -54,12 +70,12 @@ Etape 4 : Installer skopeo (outil pour copier une image docker locale vers ecr)
 - télécharger depuis : https://github.com/passcod/winskopeo
 - dézipper le fichier et mettre l'exécutable dans un dossier dans un dossier "skopeo" (exemple : C:\skopeo)
 - ajouter le chemin du dossier bin dans la variable d'environnement PATH 
-  (Panneau de configuration > Système et sécurité > Système > Paramètres système avancés > Variables d'environnement > Path > Modifier > Nouveau > coller le chemin du dossier bin)
+  (Panneau de configuration > Système et sécurité > Système > Paramètres système avancés > Variables d'environnement > Path > Modifier > Nouveau > coller le chemin du dossier dans lequel se trouve l'exécutable skopeo > OK)
 - ouvrir un nouveau powershell et taper la commande : skopeo --version 
   (si la commande est reconnue, c'est que l'installation est réussie)
 
 NB : Tu peux aussi utiliser le fichier .exe qui est présent dans le dossier live-coding-sg. 
-dans le cas, il faut juste ajouter le chemin du dossier live-coding-sg dans la variable d'environnement PATH
+dans ce cas, il faut juste ajouter le chemin du dossier skopeo (C:\Users\<nom utilisateur>\live-coding-sg\skopeo) dans la variable d'environnement PATH
 (ex )
 
 Etape 6 : dockeriser le script d'inférence et le pousser dans ecr
@@ -128,7 +144,7 @@ IAM > Rôles > Créer un rôle > AWS service > SageMaker > Permissions > Attache
 - AmazonS3FullAccess
 - AmazonSageMakerFullAccess
 
-
+>>> copier l'arn du rôle créé dans le notebook (cellule 53)
 (voir notebook/experim.ipynb pour la suite)
 
 
