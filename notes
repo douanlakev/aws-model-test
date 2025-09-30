@@ -5,6 +5,9 @@ Etape 0 : Télcharger et configurer AWS CLI et se connecter à son compte AWS
 >>> https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 (choisir la version windows)
 
+installer l'exécutable en local puis ouvrir un nouveau powershell et taper la commande suivante pour vérifier que l'installation est réussie :
+>>> aws --version
+
 1. créer un IAM sur amazon(give admin role)
 >>> https://aws.amazon.com/iam/
 (choisir un nom d'utilisateur, cocher "Accès programmatique" et "AdministrateurAccès")
@@ -13,7 +16,7 @@ Etape 0 : Télcharger et configurer AWS CLI et se connecter à son compte AWS
 depuis le navigateur, aller dans :
 IAMS -> user -> clés d'accès (coin supérieur droit) -> create access key > Interactive CLI > download .csv file
 
-3. configure access to iam via cli 
+3. configurer l'accès à IAM via CLI
 Depuis powershell, taper la commande suivante et entrer les informations demandées (id, key, région, format json) 
 qui se trouvent dans le fichier .csv téléchargé précédemment :
 
@@ -24,9 +27,7 @@ Default region name [None]: eu-north-1
 Default output format [None]: json
 
 
-
-
-Etape 1 :  create s3 bucket and make it public
+Etape 1 : créer un bucket s3 et le rendre public
 ------------------------------------------------
 (Depuis la console, il faut décocher le blocage d'accès public)
  s3 >> create bucket >> nom : kevindouanlapat >> région : eu-north-1 >> décocher "bloquer tout accès public"
@@ -56,6 +57,10 @@ Etape 4 : Installer skopeo (outil pour copier une image docker locale vers ecr)
   (Panneau de configuration > Système et sécurité > Système > Paramètres système avancés > Variables d'environnement > Path > Modifier > Nouveau > coller le chemin du dossier bin)
 - ouvrir un nouveau powershell et taper la commande : skopeo --version 
   (si la commande est reconnue, c'est que l'installation est réussie)
+
+NB : Tu peux aussi utiliser le fichier .exe qui est présent dans le dossier live-coding-sg. 
+dans le cas, il faut juste ajouter le chemin du dossier live-coding-sg dans la variable d'environnement PATH
+(ex )
 
 Etape 6 : dockeriser le script d'inférence et le pousser dans ecr
 -----------------------------------------------------------------
