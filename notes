@@ -1,0 +1,132 @@
+Etape 0 : Télcharger et configurer AWS CLI et se connecter à son compte AWS
+--------------------------------------------------------------------------------
+
+1. Télécharger et installer AWS CLI 
+>>> https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+(choisir la version windows)
+
+1. créer un IAM sur amazon(give admin role)
+>>> https://aws.amazon.com/iam/
+(choisir un nom d'utilisateur, cocher "Accès programmatique" et "AdministrateurAccès")
+
+2. créer une clé d'accès sur IAM depuis la console
+depuis le navigateur, aller dans :
+IAMS -> user -> clés d'accès (coin supérieur droit) -> create access key > Interactive CLI > download .csv file
+
+3. configure access to iam via cli 
+Depuis powershell, taper la commande suivante et entrer les informations demandées (id, key, région, format json) 
+qui se trouvent dans le fichier .csv téléchargé précédemment :
+
+>>> aws configure
+AWS Access Key ID [None]: <your-access-key-id>
+AWS Secret Access Key [None]: <your-secret-access-key>
+Default region name [None]: eu-north-1 
+Default output format [None]: json
+
+
+
+
+Etape 1 :  create s3 bucket and make it public
+------------------------------------------------
+(Depuis la console, il faut décocher le blocage d'accès public)
+ s3 >> create bucket >> nom : kevindouanlapat >> région : eu-north-1 >> décocher "bloquer tout accès public"
+
+Lister les buckets s3 depuis powershell 
+>>> aws s3 ls
+
+Etape 2 : entrainer le modèle et le mettre au format pickle
+----------------------------------------------------------------
+(voir notebook/experim.ipynb)
+
+
+Etape 3 : archiver le modèle en format tar.gz et le mettre dans le bucket s3
+-----------------------------------------------------------------------------------
+(voir notebook/experim.ipynb)
+
+Etape 4 : regarder si l'artefact est bien dans le bucket s3
+----------------------------------------------------------------
+depuis powershell, taper la commande suivante pour lister les fichiers dans le bucket s3 (remplacer <nom du bucket> par le nom de votre bucket) :
+>>> aws s3 ls s3://<nom du bucket>/artifacts/
+
+Etape 4 : Installer skopeo (outil pour copier une image docker locale vers ecr)
+-------------------------------------------------------------------------------
+- télécharger depuis : https://github.com/passcod/winskopeo
+- dézipper le fichier et mettre l'exécutable dans un dossier dans un dossier "skopeo" (exemple : C:\skopeo)
+- ajouter le chemin du dossier bin dans la variable d'environnement PATH 
+  (Panneau de configuration > Système et sécurité > Système > Paramètres système avancés > Variables d'environnement > Path > Modifier > Nouveau > coller le chemin du dossier bin)
+- ouvrir un nouveau powershell et taper la commande : skopeo --version 
+  (si la commande est reconnue, c'est que l'installation est réussie)
+
+Etape 6 : dockeriser le script d'inférence et le pousser dans ecr
+-----------------------------------------------------------------
+
+Depuis powershell accéder au dossiers live-coding-sg et exécuter les commandes suivantes :
+
+>> Construire l'image docker 
+-- docker build -t aws-inference-model .
+
+>> Tester l'image localement 
+-- docker run -it --rm -v ${PWD}\notebook\artifacts:/opt/ml/model -p 8080:8080 aws-inference-model
+
+>>> Tester une route : curl http://127.0.0.1:8080/ping
+
+>> Créer un repository dans ecr 
+Depuis powershell, taper la commande suivante pour créer un repository dans ecr (remplacer <repository-name> par le nom de votre repository) :
+
+>>> aws ecr create-repository --repository-name aws-model-ecr-v1 --region eu-north-1
+
+La réponse doit ressembler à ceci :
+{
+    "repository": {
+        "repositoryArn": "arn:aws:ecr:eu-north-1:077260319067:repository/aws-model-ecr-v1",
+        "registryId": "077260319067",
+        "repositoryName": "aws-model-ecr-v1",
+        "repositoryUri": "077260319067.dkr.ecr.eu-north-1.amazonaws.com/aws-model-ecr-v1",
+        "createdAt": "2025-09-28T02:25:19.445000+02:00",
+        "imageTagMutability": "MUTABLE",
+        "imageScanningConfiguration": {
+            "scanOnPush": false
+        },
+        "encryptionConfiguration": {
+            "encryptionType": "AES256"
+        }
+    }
+}
+
+
+-- Récupérer le token 
+>>> $TOKEN=$(aws ecr get-login-password --region eu-north-1)
+
+>> Copier l’image locale (docker-daemon) vers ECR avec skopeo au format v2s2 qui est compatible avec sagemaker
+skopeo copy --format v2s2 \
+  --dest-creds AWS:$TOKEN \
+  docker-daemon:aws-inference-model:latest \
+  docker://077260319067.dkr.ecr.eu-north-1.amazonaws.com/aws-model-ecr-v1:latest
+
+>> Vérifier que l’image est bien poussée (inspect)
+skopeo inspect \
+  --creds AWS:$TOKEN \
+  docker://077260319067.dkr.ecr.eu-north-1.amazonaws.com/aws-model-ecr-v1:latest
+
+
+Etape 7 : Créer l'endpoint dans sagemaker 
+-----------------------------------------
+
+(Pré-réquis : connaitre l'uri de l'image et créer un rôle IAM pour SageMaker)
+
+>>> Construire l'uri de l'image 
+<account-id>.dkr.ecr.<region>.amazonaws.com/<repository-name>:<tag>
+
+>>> Créer un rôle IAM pour SageMaker avec les permissions suivantes :
+Depuis le navigateur, aller dans :
+IAM > Rôles > Créer un rôle > AWS service > SageMaker > Permissions > Attacher les politiques suivantes :
+- AmazonS3FullAccess
+- AmazonSageMakerFullAccess
+
+
+(voir notebook/experim.ipynb pour la suite)
+
+
+Etape 8 : Tester l'endpoint
+---------------------------------------
+(voir notebook/experim.ipynb pour la suite)
